@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Remiseur - TSEE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { carmillon: '#84002b', anthracite: '#30363d' }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-anthracite text-slate-100 font-sans">
+
+    <div class="flex flex-col items-center justify-center min-h-screen p-4">
+        
+        <div class="mb-6 shadow-2xl">
+            <div class="bg-carmillon w-20 h-20 rounded-full flex items-center justify-center border-4 border-white/20">
+                <span class="text-white font-extrabold text-xl tracking-tighter">TSEE</span>
+            </div>
+        </div>
+
+        <div id="ecran-accueil" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
+            <h1 class="text-2xl font-black text-anthracite text-center mb-1 uppercase tracking-tighter">Espace Formation</h1>
+            <p class="text-carmillon text-center font-bold mb-8 text-sm text-wrap text-center">MAT02CD2A2 - MODULE 2 CONDUITE</p>
+
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1 text-center">Numéro de CP</label>
+                    <input type="text" id="username" class="w-full p-3 rounded border-2 border-slate-200 focus:border-carmillon outline-none text-anthracite font-semibold text-center text-xl" placeholder="Ex: 1234567">
+                </div>
+                <button onclick="demarrerLeQuiz()" class="w-full bg-carmillon hover:bg-red-900 text-white font-bold py-4 rounded shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
+                    Lancer l'examen
+                </button>
+            </div>
+        </div>
+
+        <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
+            <div class="flex justify-between items-center mb-6">
+                <span id="progression" class="text-xs font-bold text-slate-400 uppercase">Question 1/20</span>
+                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase">Agent</span>
+            </div>
+
+            <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">
+                Chargement...
+            </h2>
+
+            <div id="options-container" class="space-y-3"></div>
+
+            <div id="feedback" class="mt-6 p-4 rounded hidden font-bold text-center"></div>
+        </div>
+
+        <div id="ecran-resultats" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon text-center">
+            <h2 class="text-2xl font-black text-anthracite uppercase mb-2">Résultat Final</h2>
+            <p id="nom-final" class="text-carmillon font-bold mb-6 italic"></p>
+            
+            <div class="text-5xl font-black text-anthracite mb-4">
+                <span id="score-chiffre">0</span><span class="text-2xl text-slate-400">/20</span>
+            </div>
+
+            <p id="appreciation" class="font-bold text-lg mb-8"></p>
+
+            <button onclick="location.reload()" class="w-full bg-anthracite text-white font-bold py-4 rounded shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm">
+                Recommencer
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const mesQuestions = [
+            { q: "Quelle aptitude est indispensable au conducteur selon l'OPG1 ?", opts: ["Vitesse", "Rigueur", "Force"], rep: 1 },
+            { q: "Que signifie 'H' dans l'alphabet phonétique SNCF ?", opts: ["Hélico", "Hôtel", "Haricot"], rep: 1 },
+            { q: "Obligation du conducteur : que faire pour les victimes d'accidents ?", opts: ["Attendre", "Secourir", "Appeler la presse"], rep: 1 },
+            { q: "Quelle est la tension en Courant Continu (CC) ?", opts: ["750V", "1500V", "25000V"], rep: 1 },
+            { q: "Distance minimale pour traverser devant un matériel à l'arrêt ?", opts: ["1m", "3m", "5m"], rep: 1 },
+            { q: "Que signifie un liseré bleu sur un support caténaire ?", opts: ["H < 5m", "H > 5m", "Danger"], rep: 0 },
+            { q: "Quelle est la vitesse max en marche en manœuvre ?", opts: ["10 km/h", "30 km/h", "60 km/h"], rep: 1 },
+            { q: "Que signifie l'ordre 'Appuyez' ?", opts: ["Arrêt", "Mouvement faible pour accoupler", "Urgence"], rep: 1 },
+            { q: "Écartement standard des rails ?", opts: ["1,435 m", "1,500 m", "1,600 m"], rep: 0 },
+            { q: "Rôle du ballast ?", opts: ["Décoration", "Répartir les charges", "Isoler le courant"], rep: 1 },
+            { q: "Que signifie l'indice 'Z' d'un engin moteur ?", opts: ["Thermique", "Bicourant", "Vapeur"], rep: 1 },
+            { q: "Téléphone à bandeau VERT ?", opts: ["Gendarmerie", "Régulateur", "Chef d'escale"], rep: 1 },
+            { q: "Distance de couverture d'un obstacle (CLO) ?", opts: ["10m", "30m", "50m"], rep: 1 },
+            { q: "Un Carré (C) fermé impose :", opts: ["Arrêt absolu", "10 km/h", "Marche à vue"], rep: 0 },
+            { q: "Que vérifier après avoir manœuvré un taquet ?", opts: ["L'obéissance", "La propreté", "La couleur"], rep: 0 },
+            { q: "Chevron pointe en haut sur voie de service ?", opts: ["Accélérez", "Arrêt avant", "Voie libre"], rep: 1 },
+            { q: "Signe précoce d'hypovigilance ?", opts: ["Faim", "Picotement oculaire", "Chaleur"], rep: 1 },
+            { q: "Organe protégeant le circuit HT ?", opts: ["Le panto", "Le disjoncteur", "Le compresseur"], rep: 1 },
+            { q: "Aiguille 'à gauche' (en pointe) : quelle lame est appliquée ?", opts: ["La gauche", "La droite", "Aucune"], rep: 1 },
+            { q: "Interlocuteur pour un journaliste ?", opts: ["Vous", "Le service presse", "Le DPX"], rep: 1 }
+        ];
+
+        let index = 0;
+        let score = 0;
+        let nom = "";
+
+        function demarrerLeQuiz() {
+            nom = document.getElementById('username').value;
+            if(nom.length < 3) return alert("Entrez votre CP !");
+            document.getElementById('ecran-accueil').classList.add('hidden');
+            document.getElementById('ecran-quiz').classList.remove('hidden');
+            document.getElementById('affichage-nom').innerText = "Agent: " + nom;
+            chargerQuestion();
+        }
+
+        function chargerQuestion() {
+            const current = mesQuestions[index];
+            document.getElementById('question-texte').innerText = current.q;
+            document.getElementById('progression').innerText = `Question ${index + 1}/${mesQuestions.length}`;
+            const container = document.getElementById('options-container');
+            container.innerHTML = "";
+            document.getElementById('feedback').classList.add('hidden');
+
+            current.opts.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = o;
+                btn.className = "w-full text-left p-4 rounded border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 text-anthracite font-bold transition-all";
+                btn.onclick = () => verifier(i);
+                container.appendChild(btn);
+            });
+        }
+
+        function verifier(choix) {
+            const correct = mesQuestions[index].rep;
+            const f = document.getElementById('feedback');
+            f.classList.remove('hidden');
+            
+            if(choix === correct) {
+                score++;
+                f.innerText = "✅ CORRECT";
+                f.className = "mt-6 p-4 rounded font-black text-center bg-green-100 text-green-700";
+            } else {
+                f.innerText = "❌ ERREUR : " + mesQuestions[index].opts[correct];
+                f.className = "mt-6 p-4 rounded font-black text-center bg-red-100 text-red-700";
+            }
+
+            setTimeout(() => {
+                index++;
+                if(index < mesQuestions.length) chargerQuestion();
+                else afficherResultats();
+            }, 1500);
+        }
+
+        function afficherResultats() {
+            document.getElementById('ecran-quiz').classList.add('hidden');
+            document.getElementById('ecran-resultats').classList.remove('hidden');
+            document.getElementById('nom-final').innerText = "Agent CP: " + nom;
+            document.getElementById('score-chiffre').innerText = score;
+            
+            const aprem = document.getElementById('appreciation');
+            if(score >= 18) { aprem.innerText = "Excellent ! Prêt pour l'examen."; aprem.className="text-green-600 font-bold"; }
+            else if(score >= 14) { aprem.innerText = "Très bien, encore un petit effort."; aprem.className="text-blue-600 font-bold"; }
+            else { aprem.innerText = "Besoin de relire le module 2."; aprem.className="text-carmillon font-bold"; }
+        }
+    </script>
+</body>
+</html>
