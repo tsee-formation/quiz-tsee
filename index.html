@@ -19,15 +19,17 @@
 
     <div class="flex flex-col items-center justify-center min-h-screen p-4">
         
+        <!-- LOGO TSEE -->
         <div class="mb-6 shadow-2xl">
             <div class="bg-carmillon w-20 h-20 rounded-full flex items-center justify-center border-4 border-white/20">
                 <span class="text-white font-extrabold text-xl tracking-tighter">TSEE</span>
             </div>
         </div>
 
+        <!-- ÉCRAN 1 : ACCUEIL -->
         <div id="ecran-accueil" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <h1 class="text-2xl font-black text-anthracite text-center mb-1 uppercase tracking-tighter">Espace Formation</h1>
-            <p class="text-carmillon text-center font-bold mb-8 text-sm text-wrap text-center">MAT02CD2A2 - MODULE 2 CONDUITE</p>
+            <p class="text-carmillon text-center font-bold mb-8 text-sm uppercase">MAT02CD2A2 - Conduite</p>
 
             <div class="space-y-6">
                 <div>
@@ -40,21 +42,21 @@
             </div>
         </div>
 
+        <!-- ÉCRAN 2 : LE QUIZ -->
         <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <div class="flex justify-between items-center mb-6">
                 <span id="progression" class="text-xs font-bold text-slate-400 uppercase">Question 1/20</span>
-                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase">Agent</span>
+                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase font-mono">Agent</span>
             </div>
 
-            <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">
-                Chargement...
-            </h2>
+            <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">Chargement...</h2>
 
             <div id="options-container" class="space-y-3"></div>
 
             <div id="feedback" class="mt-6 p-4 rounded hidden font-bold text-center"></div>
         </div>
 
+        <!-- ÉCRAN 3 : RÉSULTATS -->
         <div id="ecran-resultats" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon text-center">
             <h2 class="text-2xl font-black text-anthracite uppercase mb-2">Résultat Final</h2>
             <p id="nom-final" class="text-carmillon font-bold mb-6 italic"></p>
@@ -65,9 +67,14 @@
 
             <p id="appreciation" class="font-bold text-lg mb-8"></p>
 
-            <button onclick="location.reload()" class="w-full bg-anthracite text-white font-bold py-4 rounded shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm">
-                Recommencer
-            </button>
+            <div class="space-y-3">
+                <button onclick="telechargerResultat()" class="w-full bg-green-600 text-white font-bold py-3 rounded shadow hover:bg-green-700 transition-all uppercase text-xs flex items-center justify-center gap-2">
+                    📥 Télécharger mon attestation
+                </button>
+                <button onclick="location.reload()" class="w-full bg-anthracite text-white font-bold py-3 rounded shadow hover:bg-black transition-all uppercase text-xs">
+                    Recommencer
+                </button>
+            </div>
         </div>
 
     </div>
@@ -101,11 +108,11 @@
         let nom = "";
 
         function demarrerLeQuiz() {
-            nom = document.getElementById('username').value;
-            if(nom.length < 3) return alert("Entrez votre CP !");
+            nom = document.getElementById('username').value.trim();
+            if(nom.length < 3) return alert("Veuillez saisir un CP valide.");
             document.getElementById('ecran-accueil').classList.add('hidden');
             document.getElementById('ecran-quiz').classList.remove('hidden');
-            document.getElementById('affichage-nom').innerText = "Agent: " + nom;
+            document.getElementById('affichage-nom').innerText = "CP: " + nom;
             chargerQuestion();
         }
 
@@ -144,7 +151,7 @@
                 index++;
                 if(index < mesQuestions.length) chargerQuestion();
                 else afficherResultats();
-            }, 1500);
+            }, 1200);
         }
 
         function afficherResultats() {
@@ -154,9 +161,30 @@
             document.getElementById('score-chiffre').innerText = score;
             
             const aprem = document.getElementById('appreciation');
-            if(score >= 18) { aprem.innerText = "Excellent ! Prêt pour l'examen."; aprem.className="text-green-600 font-bold"; }
-            else if(score >= 14) { aprem.innerText = "Très bien, encore un petit effort."; aprem.className="text-blue-600 font-bold"; }
-            else { aprem.innerText = "Besoin de relire le module 2."; aprem.className="text-carmillon font-bold"; }
+            if(score >= 18) aprem.innerText = "Parfait ! Maîtrise totale du module.";
+            else if(score >= 14) aprem.innerText = "Bon résultat. À valider avec le DPX.";
+            else aprem.innerText = "Révisions nécessaires du livret MAT02.";
+        }
+
+        function telechargerResultat() {
+            const date = new Date().toLocaleDateString();
+            const contenu = `
+            ------------------------------------------
+            ATTESTATION DE RÉVISION - TSEE
+            ------------------------------------------
+            Agent (CP) : ${nom}
+            Date du test : ${date}
+            Module : MAT02CD2A2 - Conduite
+            Score Final : ${score} / 20
+            ------------------------------------------
+            Résultat généré par l'application Quiz TSEE.
+            ------------------------------------------`;
+            
+            const blob = new Blob([contenu], { type: "text/plain" });
+            const lien = document.createElement("a");
+            lien.href = URL.createObjectURL(blob);
+            lien.download = `Resultat_Quiz_${nom}.txt`;
+            lien.click();
         }
     </script>
 </body>
