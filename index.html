@@ -29,12 +29,12 @@
         <!-- ÉCRAN 1 : ACCUEIL -->
         <div id="ecran-accueil" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <h1 class="text-2xl font-black text-anthracite text-center mb-1 uppercase tracking-tighter">Espace Formation</h1>
-            <p class="text-carmillon text-center font-bold mb-8 text-sm uppercase">MAT02CD2A2 - Conduite</p>
+            <p class="text-carmillon text-center font-bold mb-8 text-sm uppercase">MAT02CD2A2 - MODULE 2 CONDUITE</p>
 
             <div class="space-y-6">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1 text-center">Numéro de CP</label>
-                    <input type="text" id="username" class="w-full p-3 rounded border-2 border-slate-200 focus:border-carmillon outline-none text-anthracite font-semibold text-center text-xl" placeholder="Ex: 1234567">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1 text-center text-slate-400">Identifiant Agent (CP)</label>
+                    <input type="text" id="username" class="w-full p-3 rounded border-2 border-slate-200 focus:border-carmillon outline-none text-anthracite font-semibold text-center text-xl uppercase" placeholder="Ex: 1234567X">
                 </div>
                 <button onclick="demarrerLeQuiz()" class="w-full bg-carmillon hover:bg-red-900 text-white font-bold py-4 rounded shadow-lg transition-all active:scale-95 uppercase tracking-widest text-sm">
                     Lancer l'examen
@@ -46,7 +46,7 @@
         <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <div class="flex justify-between items-center mb-6">
                 <span id="progression" class="text-xs font-bold text-slate-400 uppercase">Question 1/20</span>
-                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase font-mono">Agent</span>
+                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase">Agent</span>
             </div>
 
             <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">Chargement...</h2>
@@ -67,12 +67,12 @@
 
             <p id="appreciation" class="font-bold text-lg mb-8"></p>
 
-            <div class="space-y-3">
-                <button onclick="telechargerResultat()" class="w-full bg-green-600 text-white font-bold py-3 rounded shadow hover:bg-green-700 transition-all uppercase text-xs flex items-center justify-center gap-2">
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="telechargerResultat()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded shadow transition-all uppercase text-xs">
                     📥 Télécharger mon attestation
                 </button>
-                <button onclick="location.reload()" class="w-full bg-anthracite text-white font-bold py-3 rounded shadow hover:bg-black transition-all uppercase text-xs">
-                    Recommencer
+                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black text-white font-bold py-4 rounded shadow transition-all uppercase text-xs">
+                    Recommencer le test
                 </button>
             </div>
         </div>
@@ -80,6 +80,7 @@
     </div>
 
     <script>
+        // Configuration des questions
         const mesQuestions = [
             { q: "Quelle aptitude est indispensable au conducteur selon l'OPG1 ?", opts: ["Vitesse", "Rigueur", "Force"], rep: 1 },
             { q: "Que signifie 'H' dans l'alphabet phonétique SNCF ?", opts: ["Hélico", "Hôtel", "Haricot"], rep: 1 },
@@ -106,13 +107,14 @@
         let index = 0;
         let score = 0;
         let nom = "";
+        let historique = [];
 
         function demarrerLeQuiz() {
             nom = document.getElementById('username').value.trim();
-            if(nom.length < 3) return alert("Veuillez saisir un CP valide.");
+            if(nom.length < 3) return alert("Veuillez saisir votre CP.");
             document.getElementById('ecran-accueil').classList.add('hidden');
             document.getElementById('ecran-quiz').classList.remove('hidden');
-            document.getElementById('affichage-nom').innerText = "CP: " + nom;
+            document.getElementById('affichage-nom').innerText = "Agent: " + nom;
             chargerQuestion();
         }
 
@@ -138,12 +140,20 @@
             const f = document.getElementById('feedback');
             f.classList.remove('hidden');
             
+            // On stocke le résultat pour l'attestation finale
+            historique.push({
+                q: mesQuestions[index].q,
+                repDonnee: mesQuestions[index].opts[choix],
+                repJuste: mesQuestions[index].opts[correct],
+                estJuste: choix === correct
+            });
+
             if(choix === correct) {
                 score++;
                 f.innerText = "✅ CORRECT";
                 f.className = "mt-6 p-4 rounded font-black text-center bg-green-100 text-green-700";
             } else {
-                f.innerText = "❌ ERREUR : " + mesQuestions[index].opts[correct];
+                f.innerText = "❌ ERREUR";
                 f.className = "mt-6 p-4 rounded font-black text-center bg-red-100 text-red-700";
             }
 
@@ -151,7 +161,7 @@
                 index++;
                 if(index < mesQuestions.length) chargerQuestion();
                 else afficherResultats();
-            }, 1200);
+            }, 1000);
         }
 
         function afficherResultats() {
@@ -161,29 +171,46 @@
             document.getElementById('score-chiffre').innerText = score;
             
             const aprem = document.getElementById('appreciation');
-            if(score >= 18) aprem.innerText = "Parfait ! Maîtrise totale du module.";
-            else if(score >= 14) aprem.innerText = "Bon résultat. À valider avec le DPX.";
-            else aprem.innerText = "Révisions nécessaires du livret MAT02.";
+            if(score >= 18) { aprem.innerText = "EXCELLENT - Maîtrise réglementaire acquise."; aprem.className="text-green-600 font-bold"; }
+            else if(score >= 14) { aprem.innerText = "BIEN - Quelques points à revoir."; aprem.className="text-blue-600 font-bold"; }
+            else { aprem.innerText = "INSUFFISANT - Reprenez votre livret MAT02."; aprem.className="text-carmillon font-bold"; }
         }
 
         function telechargerResultat() {
-            const date = new Date().toLocaleDateString();
-            const contenu = `
-            ------------------------------------------
-            ATTESTATION DE RÉVISION - TSEE
-            ------------------------------------------
-            Agent (CP) : ${nom}
-            Date du test : ${date}
-            Module : MAT02CD2A2 - Conduite
-            Score Final : ${score} / 20
-            ------------------------------------------
-            Résultat généré par l'application Quiz TSEE.
-            ------------------------------------------`;
+            const d = new Date();
+            const dateStr = d.toLocaleDateString() + " à " + d.toLocaleTimeString();
             
+            let bilan = "--- DÉTAIL DE L'EXAMEN ---\n\n";
+            historique.forEach((item, i) => {
+                bilan += `Q${i+1}: ${item.q}\n`;
+                bilan += `Résultat: ${item.estJuste ? "VALIDE" : "ÉCHEC"}\n`;
+                if(!item.estJuste) {
+                    bilan += `Votre réponse: ${item.repDonnee}\n`;
+                    bilan += `Réponse attendue: ${item.repJuste}\n`;
+                }
+                bilan += "--------------------------\n";
+            });
+
+            const contenu = `
+==========================================
+      ATTESTATION DE FORMATION TSEE
+==========================================
+AGENT CP     : ${nom}
+DATE         : ${dateStr}
+MODULE       : MAT02CD2A2 - CONDUITE
+SCORE FINAL  : ${score} / 20
+==========================================
+
+${bilan}
+
+L'agent est invité à conserver ce document
+pour son suivi de formation.
+==========================================`;
+
             const blob = new Blob([contenu], { type: "text/plain" });
             const lien = document.createElement("a");
             lien.href = URL.createObjectURL(blob);
-            lien.download = `Resultat_Quiz_${nom}.txt`;
+            lien.download = `Attestation_TSEE_${nom}.txt`;
             lien.click();
         }
     </script>
