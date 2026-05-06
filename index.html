@@ -14,10 +14,17 @@
             }
         }
     </script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+            body { background: white; color: black; }
+            .print-only { display: block !important; }
+        }
+    </style>
 </head>
 <body class="bg-anthracite text-slate-100 font-sans">
 
-    <div class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="flex flex-col items-center justify-center min-h-screen p-4 no-print">
         
         <!-- LOGO TSEE -->
         <div class="mb-6 shadow-2xl">
@@ -46,7 +53,7 @@
         <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <div class="flex justify-between items-center mb-6">
                 <span id="progression" class="text-xs font-bold text-slate-400 uppercase">Question 1/20</span>
-                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase">Agent</span>
+                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase font-mono text-[10px]">Agent</span>
             </div>
 
             <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">Chargement...</h2>
@@ -68,15 +75,14 @@
             <p id="appreciation" class="font-bold text-lg mb-8"></p>
 
             <div class="grid grid-cols-1 gap-3">
-                <button onclick="telechargerResultat()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded shadow transition-all uppercase text-xs">
-                    📥 Télécharger mon attestation
+                <button onclick="genererAttestation()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded shadow transition-all uppercase text-xs flex items-center justify-center gap-2">
+                    🎓 Editer mon attestation (PDF)
                 </button>
                 <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black text-white font-bold py-4 rounded shadow transition-all uppercase text-xs">
                     Recommencer le test
                 </button>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -103,12 +109,8 @@
             { q: "Interlocuteur pour un journaliste ?", opts: ["Vous", "Le service presse", "Le DPX"], rep: 1 }
         ];
 
-        let index = 0;
-        let score = 0;
-        let nom = "";
-        let historique = [];
+        let index = 0, score = 0, nom = "", historique = [];
 
-        // Fonction pour mélanger un tableau (Mélange de Fisher-Yates)
         function melangerTableau(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -134,15 +136,13 @@
             container.innerHTML = "";
             document.getElementById('feedback').classList.add('hidden');
 
-            // On crée une copie mélangée des options
             const optionsMelangees = melangerTableau([...current.opts]);
             const bonneReponseTexte = current.opts[current.rep];
 
             optionsMelangees.forEach((o) => {
                 const btn = document.createElement('button');
                 btn.innerText = o;
-                btn.className = "w-full text-left p-4 rounded border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 text-anthracite font-bold transition-all";
-                // On vérifie en comparant le texte
+                btn.className = "w-full text-left p-4 rounded border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 text-anthracite font-bold transition-all text-sm";
                 btn.onclick = () => verifier(o, bonneReponseTexte);
                 container.appendChild(btn);
             });
@@ -181,48 +181,86 @@
             document.getElementById('ecran-resultats').classList.remove('hidden');
             document.getElementById('nom-final').innerText = "Agent CP: " + nom;
             document.getElementById('score-chiffre').innerText = score;
-            
             const aprem = document.getElementById('appreciation');
-            if(score >= 18) { aprem.innerText = "EXCELLENT - Prêt pour l'examen !"; aprem.className="text-green-600 font-bold"; }
-            else if(score >= 14) { aprem.innerText = "BIEN - Continuez vos révisions."; aprem.className="text-blue-600 font-bold"; }
+            if(score >= 18) { aprem.innerText = "EXCELLENT - Maîtrise acquise."; aprem.className="text-green-600 font-bold"; }
+            else if(score >= 14) { aprem.innerText = "BIEN - Quelques points à revoir."; aprem.className="text-blue-600 font-bold"; }
             else { aprem.innerText = "INSUFFISANT - Reprenez le livret MAT02."; aprem.className="text-carmillon font-bold"; }
         }
 
-        function telechargerResultat() {
+        function genererAttestation() {
             const d = new Date();
-            const dateStr = d.toLocaleDateString() + " à " + d.toLocaleTimeString();
-            
-            let bilan = "--- BILAN DÉTAILLÉ ---\n\n";
-            historique.forEach((item, i) => {
-                bilan += `Q${i+1}: ${item.q}\n`;
-                bilan += `Résultat: ${item.estJuste ? "VALIDE" : "ÉCHEC"}\n`;
-                if(!item.estJuste) {
-                    bilan += `Votre réponse: ${item.repDonnee}\n`;
-                    bilan += `Réponse attendue: ${item.repJuste}\n`;
-                }
-                bilan += "--------------------------\n";
-            });
+            const dateStr = d.toLocaleDateString();
+            const heureStr = d.toLocaleTimeString();
 
-            const contenu = `
-==========================================
-      ATTESTATION DE FORMATION TSEE
-==========================================
-AGENT CP     : ${nom}
-DATE         : ${dateStr}
-MODULE       : MAT02CD2A2 - CONDUITE
-SCORE FINAL  : ${score} / 20
-==========================================
+            let lignesTableau = historique.map((h, i) => `
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 8px;">Q${i+1}</td>
+                    <td style="padding: 8px;">${h.q}</td>
+                    <td style="padding: 8px; color: ${h.ok ? 'green' : 'red'};">
+                        ${h.estJuste ? '<b>VALIDE</b>' : '<b>ÉCHEC</b>'}
+                    </td>
+                    <td style="padding: 8px; font-size: 0.8em;">${h.estJuste ? '-' : 'Rép attendue : ' + h.repJuste}</td>
+                </tr>
+            `).join('');
 
-${bilan}
+            const fenetre = window.open('', '', 'width=900,height=1000');
+            fenetre.document.write(`
+                <html>
+                <head>
+                    <title>Attestation TSEE - ${nom}</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 5px solid #84002b; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+                        .logo { background: #84002b; color: white; padding: 15px; font-weight: bold; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+                        .title { text-transform: uppercase; letter-spacing: 2px; }
+                        .agent-info { background: #f4f4f4; padding: 20px; border-radius: 5px; margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        .stamp { margin-top: 50px; border: 2px solid #84002b; padding: 15px; display: inline-block; color: #84002b; font-weight: bold; transform: rotate(-5deg); }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="logo">TSEE</div>
+                        <div class="title text-right">
+                            <h1 style="margin:0; color:#30363d;">Attestation de Révision</h1>
+                            <small>Module MAT02CD2A2 - Sécurité Conduite</small>
+                        </div>
+                    </div>
 
-L'agent est invité à conserver ce document.
-==========================================`;
+                    <div class="agent-info">
+                        <p><b>Agent (CP) :</b> ${nom}</p>
+                        <p><b>Date du test :</b> ${dateStr} à ${heureStr}</p>
+                        <p><b>Score obtenu :</b> <span style="font-size: 1.5em; color: #84002b;">${score} / 20</span></p>
+                    </div>
 
-            const blob = new Blob([contenu], { type: "text/plain" });
-            const lien = document.createElement("a");
-            lien.href = URL.createObjectURL(blob);
-            lien.download = `Attestation_TSEE_${nom}.txt`;
-            lien.click();
+                    <h3>Détail de l'examen :</h3>
+                    <table>
+                        <thead>
+                            <tr style="background: #30363d; color: white; text-align: left;">
+                                <th style="padding: 10px;">#</th>
+                                <th style="padding: 10px;">Question</th>
+                                <th style="padding: 10px;">Résultat</th>
+                                <th style="padding: 10px;">Correction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lignesTableau}
+                        </tbody>
+                    </table>
+
+                    <div class="stamp">VALIDE LE ${dateStr}</div>
+
+                    <div style="margin-top: 50px; font-size: 0.8em; color: #777; text-align: center;">
+                        Document généré via l'application Espace Formation TSEE
+                    </div>
+
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            fenetre.document.close();
         }
     </script>
 </body>
