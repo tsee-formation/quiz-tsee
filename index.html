@@ -14,17 +14,10 @@
             }
         }
     </script>
-    <style>
-        @media print {
-            .no-print { display: none; }
-            body { background: white; color: black; }
-            .print-only { display: block !important; }
-        }
-    </style>
 </head>
 <body class="bg-anthracite text-slate-100 font-sans">
 
-    <div class="flex flex-col items-center justify-center min-h-screen p-4 no-print">
+    <div class="flex flex-col items-center justify-center min-h-screen p-4">
         
         <!-- LOGO TSEE -->
         <div class="mb-6 shadow-2xl">
@@ -53,7 +46,7 @@
         <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md border-t-8 border-carmillon">
             <div class="flex justify-between items-center mb-6">
                 <span id="progression" class="text-xs font-bold text-slate-400 uppercase">Question 1/20</span>
-                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase font-mono text-[10px]">Agent</span>
+                <span id="affichage-nom" class="text-xs font-bold text-carmillon uppercase">Agent</span>
             </div>
 
             <h2 id="question-texte" class="text-lg font-bold text-anthracite mb-8 leading-tight">Chargement...</h2>
@@ -109,19 +102,28 @@
             { q: "Interlocuteur pour un journaliste ?", opts: ["Vous", "Le service presse", "Le DPX"], rep: 1 }
         ];
 
-        let index = 0, score = 0, nom = "", historique = [];
+        let index = 0;
+        let score = 0;
+        let nom = "";
+        let historique = [];
 
         function melangerTableau(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
             }
             return array;
         }
 
         function demarrerLeQuiz() {
-            nom = document.getElementById('username').value.trim();
-            if(nom.length < 3) return alert("Veuillez saisir votre CP.");
+            const inputNom = document.getElementById('username');
+            if (inputNom.value.trim().length < 3) {
+                alert("Veuillez saisir votre CP.");
+                return;
+            }
+            nom = inputNom.value.trim();
             document.getElementById('ecran-accueil').classList.add('hidden');
             document.getElementById('ecran-quiz').classList.remove('hidden');
             document.getElementById('affichage-nom').innerText = "Agent: " + nom;
@@ -171,8 +173,11 @@
 
             setTimeout(() => {
                 index++;
-                if(index < mesQuestions.length) chargerQuestion();
-                else afficherResultats();
+                if(index < mesQuestions.length) {
+                    chargerQuestion();
+                } else {
+                    afficherResultats();
+                }
             }, 1000);
         }
 
@@ -196,7 +201,7 @@
                 <tr style="border-bottom: 1px solid #ddd;">
                     <td style="padding: 8px;">Q${i+1}</td>
                     <td style="padding: 8px;">${h.q}</td>
-                    <td style="padding: 8px; color: ${h.ok ? 'green' : 'red'};">
+                    <td style="padding: 8px; color: ${h.estJuste ? 'green' : 'red'};">
                         ${h.estJuste ? '<b>VALIDE</b>' : '<b>ÉCHEC</b>'}
                     </td>
                     <td style="padding: 8px; font-size: 0.8em;">${h.estJuste ? '-' : 'Rép attendue : ' + h.repJuste}</td>
@@ -211,17 +216,17 @@
                     <style>
                         body { font-family: sans-serif; padding: 40px; color: #333; }
                         .header { border-bottom: 5px solid #84002b; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-                        .logo { background: #84002b; color: white; padding: 15px; font-weight: bold; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-                        .title { text-transform: uppercase; letter-spacing: 2px; }
+                        .logo { background: #84002b; color: white; padding: 15px; font-weight: bold; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+                        .title { text-align: right; }
                         .agent-info { background: #f4f4f4; padding: 20px; border-radius: 5px; margin-bottom: 30px; }
                         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        .stamp { margin-top: 50px; border: 2px solid #84002b; padding: 15px; display: inline-block; color: #84002b; font-weight: bold; transform: rotate(-5deg); }
+                        .stamp { margin-top: 50px; border: 2px solid #84002b; padding: 15px; display: inline-block; color: #84002b; font-weight: bold; transform: rotate(-5deg); text-transform: uppercase; }
                     </style>
                 </head>
                 <body>
                     <div class="header">
                         <div class="logo">TSEE</div>
-                        <div class="title text-right">
+                        <div class="title">
                             <h1 style="margin:0; color:#30363d;">Attestation de Révision</h1>
                             <small>Module MAT02CD2A2 - Sécurité Conduite</small>
                         </div>
@@ -251,11 +256,13 @@
                     <div class="stamp">VALIDE LE ${dateStr}</div>
 
                     <div style="margin-top: 50px; font-size: 0.8em; color: #777; text-align: center;">
-                        Document généré via l'application Espace Formation TSEE
+                        Document généré numériquement - Espace Formation TSEE
                     </div>
 
                     <script>
-                        window.onload = function() { window.print(); }
+                        window.onload = function() { 
+                            setTimeout(function() { window.print(); }, 500);
+                        }
                     <\/script>
                 </body>
                 </html>
