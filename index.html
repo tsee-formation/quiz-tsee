@@ -80,7 +80,6 @@
     </div>
 
     <script>
-        // Configuration des questions
         const mesQuestions = [
             { q: "Quelle aptitude est indispensable au conducteur selon l'OPG1 ?", opts: ["Vitesse", "Rigueur", "Force"], rep: 1 },
             { q: "Que signifie 'H' dans l'alphabet phonétique SNCF ?", opts: ["Hélico", "Hôtel", "Haricot"], rep: 1 },
@@ -109,6 +108,15 @@
         let nom = "";
         let historique = [];
 
+        // Fonction pour mélanger un tableau (Mélange de Fisher-Yates)
+        function melangerTableau(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function demarrerLeQuiz() {
             nom = document.getElementById('username').value.trim();
             if(nom.length < 3) return alert("Veuillez saisir votre CP.");
@@ -126,29 +134,33 @@
             container.innerHTML = "";
             document.getElementById('feedback').classList.add('hidden');
 
-            current.opts.forEach((o, i) => {
+            // On crée une copie mélangée des options
+            const optionsMelangees = melangerTableau([...current.opts]);
+            const bonneReponseTexte = current.opts[current.rep];
+
+            optionsMelangees.forEach((o) => {
                 const btn = document.createElement('button');
                 btn.innerText = o;
                 btn.className = "w-full text-left p-4 rounded border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 text-anthracite font-bold transition-all";
-                btn.onclick = () => verifier(i);
+                // On vérifie en comparant le texte
+                btn.onclick = () => verifier(o, bonneReponseTexte);
                 container.appendChild(btn);
             });
         }
 
-        function verifier(choix) {
-            const correct = mesQuestions[index].rep;
+        function verifier(reponseChoisie, reponseCorrecte) {
             const f = document.getElementById('feedback');
             f.classList.remove('hidden');
+            const estJuste = (reponseChoisie === reponseCorrecte);
             
-            // On stocke le résultat pour l'attestation finale
             historique.push({
                 q: mesQuestions[index].q,
-                repDonnee: mesQuestions[index].opts[choix],
-                repJuste: mesQuestions[index].opts[correct],
-                estJuste: choix === correct
+                repDonnee: reponseChoisie,
+                repJuste: reponseCorrecte,
+                estJuste: estJuste
             });
 
-            if(choix === correct) {
+            if(estJuste) {
                 score++;
                 f.innerText = "✅ CORRECT";
                 f.className = "mt-6 p-4 rounded font-black text-center bg-green-100 text-green-700";
@@ -171,16 +183,16 @@
             document.getElementById('score-chiffre').innerText = score;
             
             const aprem = document.getElementById('appreciation');
-            if(score >= 18) { aprem.innerText = "EXCELLENT - Maîtrise réglementaire acquise."; aprem.className="text-green-600 font-bold"; }
-            else if(score >= 14) { aprem.innerText = "BIEN - Quelques points à revoir."; aprem.className="text-blue-600 font-bold"; }
-            else { aprem.innerText = "INSUFFISANT - Reprenez votre livret MAT02."; aprem.className="text-carmillon font-bold"; }
+            if(score >= 18) { aprem.innerText = "EXCELLENT - Prêt pour l'examen !"; aprem.className="text-green-600 font-bold"; }
+            else if(score >= 14) { aprem.innerText = "BIEN - Continuez vos révisions."; aprem.className="text-blue-600 font-bold"; }
+            else { aprem.innerText = "INSUFFISANT - Reprenez le livret MAT02."; aprem.className="text-carmillon font-bold"; }
         }
 
         function telechargerResultat() {
             const d = new Date();
             const dateStr = d.toLocaleDateString() + " à " + d.toLocaleTimeString();
             
-            let bilan = "--- DÉTAIL DE L'EXAMEN ---\n\n";
+            let bilan = "--- BILAN DÉTAILLÉ ---\n\n";
             historique.forEach((item, i) => {
                 bilan += `Q${i+1}: ${item.q}\n`;
                 bilan += `Résultat: ${item.estJuste ? "VALIDE" : "ÉCHEC"}\n`;
@@ -203,8 +215,7 @@ SCORE FINAL  : ${score} / 20
 
 ${bilan}
 
-L'agent est invité à conserver ce document
-pour son suivi de formation.
+L'agent est invité à conserver ce document.
 ==========================================`;
 
             const blob = new Blob([contenu], { type: "text/plain" });
