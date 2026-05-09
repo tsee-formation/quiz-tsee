@@ -19,7 +19,6 @@
         body { font-family: 'Inter', sans-serif; }
         .bg-gradient-sncf { background: linear-gradient(135deg, #30363d 0%, #1a1e22 100%); }
         .btn-option:active { transform: scale(0.98); }
-        .progress-bar { transition: width 0.4s ease-in-out; }
     </style>
 </head>
 <body class="bg-gradient-sncf text-slate-100 min-h-screen">
@@ -32,9 +31,9 @@
             </div>
         </div>
 
-        <div id="ecran-accueil" class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border-t-[10px] border-carmillon transition-all text-anthracite">
+        <div id="ecran-accueil" class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border-t-[10px] border-carmillon text-anthracite">
             <h1 class="text-3xl font-black text-center mb-2 uppercase tracking-tighter">Examen de Révision</h1>
-            <p class="text-carmillon text-center font-bold mb-10 text-sm tracking-widest uppercase">Module MAT02CD2A2</p>
+            <p class="text-carmillon text-center font-bold mb-10 text-sm tracking-widest uppercase">Module MAT02CD2A2 - STRICT</p>
 
             <div class="space-y-8">
                 <div class="relative text-center">
@@ -43,17 +42,13 @@
                         class="w-full p-4 rounded-xl border-2 border-slate-100 focus:border-carmillon focus:ring-4 focus:ring-carmillon/10 outline-none font-bold text-center text-2xl uppercase transition-all text-anthracite" 
                         placeholder="Ex: 1234567X">
                 </div>
-                <button onclick="demarrerLeQuiz()" class="w-full bg-carmillon hover:bg-red-900 text-white font-black py-5 rounded-xl shadow-xl hover:shadow-carmillon/20 transition-all uppercase tracking-widest text-sm">
+                <button onclick="demarrerLeQuiz()" class="w-full bg-carmillon hover:bg-red-900 text-white font-black py-5 rounded-xl shadow-xl transition-all uppercase tracking-widest text-sm">
                     Lancer l'examen
                 </button>
             </div>
         </div>
 
         <div id="ecran-quiz" class="hidden bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg border-t-[10px] border-carmillon text-anthracite">
-            <div class="mb-6 bg-slate-100 h-2 w-full rounded-full overflow-hidden">
-                <div id="barre-progression" class="progress-bar bg-carmillon h-full w-0"></div>
-            </div>
-
             <div class="flex justify-between items-center mb-8 border-b pb-4">
                 <div class="flex flex-col">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progression</span>
@@ -67,8 +62,6 @@
             <h2 id="question-texte" class="text-xl font-bold mb-10 leading-tight min-h-[60px]">Chargement...</h2>
 
             <div id="options-container" class="space-y-4"></div>
-
-            <div id="feedback" class="mt-8 p-4 rounded-xl hidden font-black text-center transition-all"></div>
         </div>
 
         <div id="ecran-resultats" class="hidden bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border-t-[10px] border-carmillon text-center text-anthracite">
@@ -89,7 +82,7 @@
                 <button onclick="genererAttestation()" class="w-full bg-green-600 hover:bg-green-700 font-black py-5 rounded-xl shadow-lg transition-all uppercase text-xs flex items-center justify-center gap-3">
                     Editer mon attestation (PDF)
                 </button>
-                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black font-black py-4 rounded-xl shadow transition-all uppercase text-[10px] tracking-widest opacity-70 hover:opacity-100">
+                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black font-black py-4 rounded-xl shadow transition-all uppercase text-[10px] tracking-widest">
                     Recommencer le test
                 </button>
             </div>
@@ -142,27 +135,16 @@
             document.getElementById('ecran-quiz').classList.remove('hidden');
             document.getElementById('affichage-nom').innerText = nomAgent;
             
-            // On mélange tout et on en prend 20 (ou moins si la liste est plus courte)
-            let copie = [...toutesLesQuestions];
-            melanger(copie);
-            questionsSelectionnees = copie.slice(0, 20);
-            
+            // On prend les 20 questions et on les mélange
+            questionsSelectionnees = melanger([...toutesLesQuestions]);
             chargerQuestion();
         }
 
         function chargerQuestion() {
-            const f = document.getElementById('feedback');
-            f.classList.add('hidden');
-            f.classList.remove('block');
-
             const q = questionsSelectionnees[index];
             document.getElementById('question-texte').innerText = q.q;
             document.getElementById('progression').innerText = "Question " + (index + 1) + "/" + questionsSelectionnees.length;
             
-            // Mise à jour barre progression
-            const pourcentage = ((index) / questionsSelectionnees.length) * 100;
-            document.getElementById('barre-progression').style.width = pourcentage + "%";
-
             const container = document.getElementById('options-container');
             container.innerHTML = "";
 
@@ -172,40 +154,30 @@
             optionsMelangees.forEach((o) => {
                 const btn = document.createElement('button');
                 btn.innerText = o;
-                btn.className = "btn-option w-full text-left p-5 rounded-xl border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 font-bold transition-all text-sm shadow-sm text-anthracite";
+                btn.className = "btn-option w-full text-left p-5 rounded-xl border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 font-bold transition-all text-sm text-anthracite shadow-sm";
                 btn.onclick = () => verifier(o, bonneReponseTexte);
                 container.appendChild(btn);
             });
         }
 
         function verifier(choix, bonneReponse) {
-            const f = document.getElementById('feedback');
-            if (f.classList.contains('block')) return;
-
             const estJuste = (choix === bonneReponse);
-            historique.push({ q: questionsSelectionnees[index].q, choix: choix, juste: bonneReponse, ok: estJuste });
+            if(estJuste) score++;
 
-            f.classList.remove('hidden');
-            f.classList.add('block');
+            historique.push({ 
+                q: questionsSelectionnees[index].q, 
+                choix: choix, 
+                juste: bonneReponse, 
+                ok: estJuste 
+            });
 
-            if(estJuste) {
-                score++;
-                f.innerText = "✅ CORRECT";
-                f.className = "mt-8 p-4 rounded-xl text-center font-black bg-green-100 text-green-700 block";
+            // Passage direct à la question suivante
+            index++;
+            if(index < questionsSelectionnees.length) {
+                chargerQuestion();
             } else {
-                f.innerText = "❌ ERREUR";
-                f.className = "mt-8 p-4 rounded-xl text-center font-black bg-red-100 text-red-700 block";
+                finirQuiz();
             }
-
-            setTimeout(() => {
-                index++;
-                if(index < questionsSelectionnees.length) {
-                    chargerQuestion();
-                } else {
-                    document.getElementById('barre-progression').style.width = "100%";
-                    finirQuiz();
-                }
-            }, 1000);
         }
 
         function finirQuiz() {
@@ -224,10 +196,10 @@
             const d = new Date();
             let lignes = historique.map((h, i) => `
                 <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding:12px; font-size:11px;">Q${i+1}</td>
-                    <td style="padding:12px; font-size:11px;">${h.q}</td>
-                    <td style="padding:12px; font-weight:bold; font-size:11px; color:${h.ok?'#16a34a':'#84002b'}">${h.ok?'VALIDE':'ECHEC'}</td>
-                    <td style="padding:12px; font-size:10px; color:#666">${h.ok ? '-' : h.juste}</td>
+                    <td style="padding:10px; font-size:11px;">Q${i+1}</td>
+                    <td style="padding:10px; font-size:11px;">${h.q}</td>
+                    <td style="padding:10px; font-weight:bold; font-size:11px; color:${h.ok?'#16a34a':'#84002b'}">${h.ok?'VALIDE':'ECHEC'}</td>
+                    <td style="padding:10px; font-size:10px; color:#666">${h.ok ? '-' : h.juste}</td>
                 </tr>`).join('');
 
             const win = window.open('', '', 'width=900,height=1000');
@@ -252,7 +224,7 @@
                             </div>
                         </div>
                         <p>L'agent CP <strong>${nomAgent}</strong> a complété l'examen de révision.</p>
-                        <p style="font-size:20px;">Score Final : <strong>${score} / ${questionsSelectionnees.length}</strong></p>
+                        <p style="font-size:20px;">Score Final : <strong>${score} / 20</strong></p>
                         <table>
                             <tr><th>N°</th><th>Question</th><th>Résultat</th><th>Correction</th></tr>
                             ${lignes}
