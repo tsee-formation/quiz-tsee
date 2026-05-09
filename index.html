@@ -79,10 +79,10 @@
             </div>
 
             <div class="grid grid-cols-1 gap-4 text-white">
-                <button onclick="genererAttestation()" class="w-full bg-green-600 hover:bg-green-700 font-black py-5 rounded-xl shadow-lg transition-all uppercase text-xs flex items-center justify-center gap-3">
-                    Editer mon attestation (PDF)
+                <button onclick="genererAttestation()" class="w-full bg-green-600 hover:bg-green-700 font-black py-5 rounded-xl shadow-lg transition-all uppercase text-xs flex items-center justify-center gap-2 active:scale-95">
+                    <span>📄</span> ÉDITER MON ATTESTATION PRO
                 </button>
-                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black font-black py-4 rounded-xl shadow transition-all uppercase text-[10px] tracking-widest">
+                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black font-black py-4 rounded-xl shadow transition-all uppercase text-[10px] tracking-widest opacity-70">
                     Recommencer le test
                 </button>
             </div>
@@ -126,16 +126,11 @@
 
         function demarrerLeQuiz() {
             const input = document.getElementById('username');
-            if (input.value.trim().length < 3) {
-                alert("Veuillez saisir votre CP.");
-                return;
-            }
+            if (input.value.trim().length < 3) { alert("Veuillez saisir votre CP."); return; }
             nomAgent = input.value.trim();
             document.getElementById('ecran-accueil').classList.add('hidden');
             document.getElementById('ecran-quiz').classList.remove('hidden');
             document.getElementById('affichage-nom').innerText = nomAgent;
-            
-            // On prend les 20 questions et on les mélange
             questionsSelectionnees = melanger([...toutesLesQuestions]);
             chargerQuestion();
         }
@@ -144,13 +139,10 @@
             const q = questionsSelectionnees[index];
             document.getElementById('question-texte').innerText = q.q;
             document.getElementById('progression').innerText = "Question " + (index + 1) + "/" + questionsSelectionnees.length;
-            
             const container = document.getElementById('options-container');
             container.innerHTML = "";
-
             const bonneReponseTexte = q.opts[q.rep];
             const optionsMelangees = melanger([...q.opts]);
-
             optionsMelangees.forEach((o) => {
                 const btn = document.createElement('button');
                 btn.innerText = o;
@@ -163,21 +155,10 @@
         function verifier(choix, bonneReponse) {
             const estJuste = (choix === bonneReponse);
             if(estJuste) score++;
-
-            historique.push({ 
-                q: questionsSelectionnees[index].q, 
-                choix: choix, 
-                juste: bonneReponse, 
-                ok: estJuste 
-            });
-
-            // Passage direct à la question suivante
+            historique.push({ q: questionsSelectionnees[index].q, choix: choix, juste: bonneReponse, ok: estJuste });
             index++;
-            if(index < questionsSelectionnees.length) {
-                chargerQuestion();
-            } else {
-                finirQuiz();
-            }
+            if(index < questionsSelectionnees.length) chargerQuestion();
+            else finirQuiz();
         }
 
         function finirQuiz() {
@@ -185,7 +166,6 @@
             document.getElementById('ecran-resultats').classList.remove('hidden');
             document.getElementById('nom-final').innerText = "AGENT CP : " + nomAgent;
             document.getElementById('score-chiffre').innerText = score;
-            
             const aprem = document.getElementById('appreciation');
             if(score >= 18) { aprem.innerText = "Maîtrise Parfaite"; aprem.style.color = "#16a34a"; }
             else if(score >= 14) { aprem.innerText = "Résultat Satisfaisant"; aprem.style.color = "#2563eb"; }
@@ -194,44 +174,68 @@
 
         function genererAttestation() {
             const d = new Date();
+            const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+            
             let lignes = historique.map((h, i) => `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding:10px; font-size:11px;">Q${i+1}</td>
-                    <td style="padding:10px; font-size:11px;">${h.q}</td>
-                    <td style="padding:10px; font-weight:bold; font-size:11px; color:${h.ok?'#16a34a':'#84002b'}">${h.ok?'VALIDE':'ECHEC'}</td>
-                    <td style="padding:10px; font-size:10px; color:#666">${h.ok ? '-' : h.juste}</td>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding:10px; font-size:10px; color:#64748b;">${i+1}</td>
+                    <td style="padding:10px; font-size:11px; font-weight:500;">${h.q}</td>
+                    <td style="padding:10px; font-weight:bold; font-size:10px; color:${h.ok?'#16a34a':'#84002b'}">${h.ok?'VALIDE':'ÉCHEC'}</td>
+                    <td style="padding:10px; font-size:10px; color:#64748b; font-style:italic;">${h.ok ? '' : h.juste}</td>
                 </tr>`).join('');
 
-            const win = window.open('', '', 'width=900,height=1000');
+            const win = window.open('', '', 'width=1000,height=1200');
             win.document.write(`
-                <html><head><title>Attestation TSEE</title>
+                <html><head><title>Attestation_${nomAgent}</title>
                 <style>
-                    body{font-family:sans-serif; padding:40px; color:#333;}
-                    .cert-box{border:8px solid #f4f4f4; padding:20px;}
-                    .header{border-bottom:4px solid #84002b; padding-bottom:15px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;}
-                    .logo{background:#84002b; color:white; padding:10px; font-weight:900; border-radius:8px;}
-                    table{width:100%; border-collapse:collapse; margin-top:20px;}
-                    th{background:#30363d; color:white; padding:10px; text-align:left; font-size:11px;}
-                    .stamp{margin-top:30px; border:3px solid #84002b; color:#84002b; display:inline-block; padding:8px 15px; font-weight:bold; transform:rotate(-3deg); text-transform:uppercase;}
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; padding: 40px; margin: 0; }
+                    .page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; box-sizing: border-box; border: 15px solid #30363d; position: relative; }
+                    .inner-border { border: 2px solid #84002b; padding: 30px; min-height: 230mm; position: relative; }
+                    .header { text-align: center; border-bottom: 3px solid #84002b; padding-bottom: 20px; margin-bottom: 40px; }
+                    .logo { background: #84002b; color: white; display: inline-block; padding: 10px 20px; font-weight: 900; font-size: 24px; border-radius: 4px; margin-bottom: 15px; }
+                    .title { text-transform: uppercase; letter-spacing: 2px; color: #30363d; margin: 0; font-size: 28px; }
+                    .subtitle { color: #64748b; font-weight: bold; margin-top: 5px; }
+                    .main-text { text-align: center; font-size: 18px; line-height: 1.6; margin: 40px 0; }
+                    .agent-name { color: #84002b; font-weight: 900; font-size: 24px; text-decoration: underline; }
+                    .score-box { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 20px; display: inline-block; margin: 20px 0; }
+                    .score-value { font-size: 40px; font-weight: 900; color: #30363d; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; }
+                    th { background: #30363d; color: white; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+                    .stamp { position: absolute; bottom: 40px; right: 40px; border: 4px double #84002b; color: #84002b; padding: 10px 20px; font-weight: bold; transform: rotate(-5deg); text-transform: uppercase; font-size: 14px; text-align: center; }
+                    @media print { body { background: none; padding: 0; } .page { border: none; } }
                 </style></head>
                 <body>
-                    <div class="cert-box">
-                        <div class="header">
-                            <div class="logo">TSEE</div>
-                            <div style="text-align:right">
-                                <h2 style="margin:0; text-transform:uppercase;">Attestation de Formation</h2>
-                                <small>Sécurité des circulations - Module MAT02CD2A2</small>
+                    <div class="page">
+                        <div class="inner-border">
+                            <div class="header">
+                                <div class="logo">TSEE</div>
+                                <h1 class="title">Attestation de Réussite</h1>
+                                <div class="subtitle">Sécurité des circulations - Module MAT02CD2A2</div>
+                            </div>
+                            
+                            <div class="main-text">
+                                Il est certifié que l'agent identifié sous le CP :<br>
+                                <span class="agent-name">${nomAgent}</span><br>
+                                a complété son évaluation avec le score suivant :<br>
+                                <div class="score-box">
+                                    <span class="score-value">${score} / 20</span>
+                                </div>
+                            </div>
+
+                            <table>
+                                <thead>
+                                    <tr><th>N°</th><th>Question posée</th><th>Résultat</th><th>Correction si échec</th></tr>
+                                </thead>
+                                <tbody>${lignes}</tbody>
+                            </table>
+
+                            <div class="stamp">
+                                Validé le ${dateStr}<br>
+                                Système TSEE-Quiz
                             </div>
                         </div>
-                        <p>L'agent CP <strong>${nomAgent}</strong> a complété l'examen de révision.</p>
-                        <p style="font-size:20px;">Score Final : <strong>${score} / 20</strong></p>
-                        <table>
-                            <tr><th>N°</th><th>Question</th><th>Résultat</th><th>Correction</th></tr>
-                            ${lignes}
-                        </table>
-                        <div class="stamp">Validé le ${d.toLocaleDateString()}</div>
                     </div>
-                    <script>window.onload = function(){ setTimeout(function(){ window.print(); window.close(); }, 700); }<\/script>
+                    <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 1000); }<\/script>
                 </body></html>`);
             win.document.close();
         }
