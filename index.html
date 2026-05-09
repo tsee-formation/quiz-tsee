@@ -3,134 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz TSEE</title>
+    <title>Quiz Formation - TSEE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { carmillon: '#84002b', anthracite: '#30363d' }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .bg-gradient-sncf { background: linear-gradient(135deg, #30363d 0%, #1a1e22 100%); }
+        .btn-option:active { transform: scale(0.98); }
+        .progress-bar { transition: width 0.4s ease-in-out; }
+    </style>
 </head>
-<body class="bg-slate-800 text-white font-sans">
+<body class="bg-gradient-sncf text-slate-100 min-h-screen">
 
     <div class="flex flex-col items-center justify-center min-h-screen p-4">
         
-        <!-- ECRAN ACCUEIL -->
-        <div id="ecran-accueil" class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-slate-800">
-            <h1 class="text-2xl font-bold text-center mb-6">Formation TSEE</h1>
-            <div class="space-y-4">
-                <input type="text" id="username" class="w-full p-3 border-2 border-slate-300 rounded text-center text-lg" placeholder="Votre CP (ex: 1234567X)">
-                <button onclick="demarrerLeQuiz()" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-4 rounded uppercase">
-                    Lancer le Test
+        <div class="mb-8 transform hover:scale-105 transition-transform">
+            <div class="bg-carmillon w-24 h-24 rounded-2xl flex items-center justify-center border-4 border-white/10 shadow-2xl">
+                <span class="text-white font-black text-2xl tracking-tighter">TSEE</span>
+            </div>
+        </div>
+
+        <div id="ecran-accueil" class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border-t-[10px] border-carmillon transition-all text-anthracite">
+            <h1 class="text-3xl font-black text-center mb-2 uppercase tracking-tighter">Examen de Révision</h1>
+            <p class="text-carmillon text-center font-bold mb-10 text-sm tracking-widest uppercase">Module MAT02CD2A2</p>
+
+            <div class="space-y-8">
+                <div class="relative text-center">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Identifiant Agent (CP)</label>
+                    <input type="text" id="username" 
+                        class="w-full p-4 rounded-xl border-2 border-slate-100 focus:border-carmillon focus:ring-4 focus:ring-carmillon/10 outline-none font-bold text-center text-2xl uppercase transition-all text-anthracite" 
+                        placeholder="Ex: 1234567X">
+                </div>
+                <button onclick="demarrerLeQuiz()" class="w-full bg-carmillon hover:bg-red-900 text-white font-black py-5 rounded-xl shadow-xl hover:shadow-carmillon/20 transition-all uppercase tracking-widest text-sm">
+                    Lancer l'examen
                 </button>
             </div>
         </div>
 
-        <!-- ECRAN QUIZ -->
-        <div id="ecran-quiz" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-slate-800">
-            <div class="flex justify-between text-xs font-bold text-slate-400 mb-4 uppercase">
-                <span id="progression">Question 1/20</span>
-                <span id="affichage-nom">Agent</span>
+        <div id="ecran-quiz" class="hidden bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg border-t-[10px] border-carmillon text-anthracite">
+            <div class="mb-6 bg-slate-100 h-2 w-full rounded-full overflow-hidden">
+                <div id="barre-progression" class="progress-bar bg-carmillon h-full w-0"></div>
             </div>
-            <h2 id="question-texte" class="text-lg font-bold mb-6">...</h2>
-            <div id="options-container" class="space-y-3"></div>
-            <div id="feedback" class="mt-6 p-4 rounded hidden text-center font-bold"></div>
+
+            <div class="flex justify-between items-center mb-8 border-b pb-4">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progression</span>
+                    <span id="progression" class="font-black">Question 1/20</span>
+                </div>
+                <div class="text-right">
+                    <span id="affichage-nom" class="bg-carmillon/10 text-carmillon px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Agent</span>
+                </div>
+            </div>
+
+            <h2 id="question-texte" class="text-xl font-bold mb-10 leading-tight min-h-[60px]">Chargement...</h2>
+
+            <div id="options-container" class="space-y-4"></div>
+
+            <div id="feedback" class="mt-8 p-4 rounded-xl hidden font-black text-center transition-all"></div>
         </div>
 
-        <!-- ECRAN FINAL -->
-        <div id="ecran-resultats" class="hidden bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-slate-800 text-center">
-            <h2 class="text-2xl font-bold mb-4 text-red-700">Résultat</h2>
-            <p id="nom-final" class="font-bold mb-2"></p>
-            <div class="text-5xl font-black mb-6"><span id="score-chiffre">0</span>/20</div>
-            <button onclick="genererAttestation()" class="w-full bg-green-600 text-white font-bold py-3 rounded mb-2">Imprimer mon attestation</button>
-            <button onclick="location.reload()" class="w-full bg-slate-200 text-slate-800 font-bold py-3 rounded">Recommencer</button>
-        </div>
+        <div id="ecran-resultats" class="hidden bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md border-t-[10px] border-carmillon text-center text-anthracite">
+            <div class="mb-6 inline-block p-4 rounded-full bg-slate-50">
+                <span class="text-5xl">🏆</span>
+            </div>
+            <h2 class="text-3xl font-black uppercase mb-2">Bilan Examen</h2>
+            <p id="nom-final" class="text-carmillon font-bold mb-8 italic"></p>
+            
+            <div class="bg-slate-50 rounded-2xl p-8 mb-8 border-2 border-slate-100">
+                <div class="text-6xl font-black mb-2">
+                    <span id="score-chiffre">0</span><span class="text-3xl text-slate-300">/20</span>
+                </div>
+                <p id="appreciation" class="font-black text-sm uppercase tracking-widest"></p>
+            </div>
 
+            <div class="grid grid-cols-1 gap-4 text-white">
+                <button onclick="genererAttestation()" class="w-full bg-green-600 hover:bg-green-700 font-black py-5 rounded-xl shadow-lg transition-all uppercase text-xs flex items-center justify-center gap-3">
+                    Editer mon attestation (PDF)
+                </button>
+                <button onclick="location.reload()" class="w-full bg-anthracite hover:bg-black font-black py-4 rounded-xl shadow transition-all uppercase text-[10px] tracking-widest opacity-70 hover:opacity-100">
+                    Recommencer le test
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Liste simplifiée pour le test
-        const questions = [
+        const toutesLesQuestions = [
             { q: "Quelle aptitude est indispensable au conducteur selon l'OPG1 ?", opts: ["Vitesse", "Rigueur", "Force"], rep: 1 },
             { q: "Que signifie 'H' dans l'alphabet phonétique SNCF ?", opts: ["Hélico", "Hôtel", "Haricot"], rep: 1 },
+            { q: "Obligation du conducteur : que faire pour les victimes d'accidents ?", opts: ["Attendre", "Secourir", "Appeler la presse"], rep: 1 },
             { q: "Quelle est la tension en Courant Continu (CC) ?", opts: ["750V", "1500V", "25000V"], rep: 1 },
             { q: "Distance minimale pour traverser devant un matériel à l'arrêt ?", opts: ["1m", "3m", "5m"], rep: 1 },
             { q: "Que signifie un liseré bleu sur un support caténaire ?", opts: ["H < 5m", "H > 5m", "Danger"], rep: 0 },
-            { q: "Vitesse max en marche en manœuvre ?", opts: ["10 km/h", "30 km/h", "60 km/h"], rep: 1 },
-            { q: "Que signifie l'ordre 'Appuyez' ?", opts: ["Arrêt", "Mouvement faible", "Urgence"], rep: 1 },
+            { q: "Quelle est la vitesse max en marche en manœuvre ?", opts: ["10 km/h", "30 km/h", "60 km/h"], rep: 1 },
+            { q: "Que signifie l'ordre 'Appuyez' ?", opts: ["Arrêt", "Mouvement faible pour accoupler", "Urgence"], rep: 1 },
             { q: "Écartement standard des rails ?", opts: ["1,435 m", "1,500 m", "1,600 m"], rep: 0 },
+            { q: "Rôle du ballast ?", opts: ["Décoration", "Répartir les charges", "Isoler le courant"], rep: 1 },
+            { q: "Que signifie l'indice 'Z' d'un engin moteur ?", opts: ["Thermique", "Bicourant", "Vapeur"], rep: 1 },
+            { q: "Téléphone à bandeau VERT ?", opts: ["Gendarmerie", "Régulateur", "Chef d'escale"], rep: 1 },
+            { q: "Distance de couverture d'un obstacle (CLO) ?", opts: ["10m", "30m", "50m"], rep: 1 },
             { q: "Un Carré (C) fermé impose :", opts: ["Arrêt absolu", "10 km/h", "Marche à vue"], rep: 0 },
-            { q: "Chevron pointe en haut sur voie de service ?", opts: ["Accélérez", "Arrêt avant", "Voie libre"], rep: 1 }
+            { q: "Que vérifier après avoir manœuvré un taquet ?", opts: ["L'obéissance", "La propreté", "La couleur"], rep: 0 },
+            { q: "Chevron pointe en haut sur voie de service ?", opts: ["Accélérez", "Arrêt avant", "Voie libre"], rep: 1 },
+            { q: "Signe précoce d'hypovigilance ?", opts: ["Faim", "Picotement oculaire", "Chaleur"], rep: 1 },
+            { q: "Organe protégeant le circuit HT ?", opts: ["Le panto", "Le disjoncteur", "Le compresseur"], rep: 1 },
+            { q: "Aiguille 'à gauche' (en pointe) : quelle lame est appliquée ?", opts: ["La gauche", "La droite", "Aucune"], rep: 1 },
+            { q: "Interlocuteur pour un journaliste ?", opts: ["Vous", "Le service presse", "Le DPX"], rep: 1 }
         ];
 
-        let index = 0;
-        let score = 0;
-        let nomAgent = "";
-        let historique = [];
+        let questionsSelectionnees = [];
+        let index = 0, score = 0, nomAgent = "", historique = [];
+
+        function melanger(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         function demarrerLeQuiz() {
             const input = document.getElementById('username');
-            if (input.value.trim().length < 2) {
-                alert("Entrez votre CP svp.");
+            if (input.value.trim().length < 3) {
+                alert("Veuillez saisir votre CP.");
                 return;
             }
             nomAgent = input.value.trim();
             document.getElementById('ecran-accueil').classList.add('hidden');
             document.getElementById('ecran-quiz').classList.remove('hidden');
             document.getElementById('affichage-nom').innerText = nomAgent;
+            
+            // On mélange tout et on en prend 20 (ou moins si la liste est plus courte)
+            let copie = [...toutesLesQuestions];
+            melanger(copie);
+            questionsSelectionnees = copie.slice(0, 20);
+            
             chargerQuestion();
         }
 
         function chargerQuestion() {
-            const q = questions[index];
+            const f = document.getElementById('feedback');
+            f.classList.add('hidden');
+            f.classList.remove('block');
+
+            const q = questionsSelectionnees[index];
             document.getElementById('question-texte').innerText = q.q;
-            document.getElementById('progression').innerText = "Question " + (index + 1) + "/" + questions.length;
+            document.getElementById('progression').innerText = "Question " + (index + 1) + "/" + questionsSelectionnees.length;
             
+            // Mise à jour barre progression
+            const pourcentage = ((index) / questionsSelectionnees.length) * 100;
+            document.getElementById('barre-progression').style.width = pourcentage + "%";
+
             const container = document.getElementById('options-container');
             container.innerHTML = "";
-            document.getElementById('feedback').classList.add('hidden');
 
-            q.opts.forEach((o) => {
+            const bonneReponseTexte = q.opts[q.rep];
+            const optionsMelangees = melanger([...q.opts]);
+
+            optionsMelangees.forEach((o) => {
                 const btn = document.createElement('button');
                 btn.innerText = o;
-                btn.className = "w-full text-left p-4 rounded border-2 border-slate-200 hover:border-red-700 font-bold";
-                btn.onclick = () => verifier(o, q.opts[q.rep]);
+                btn.className = "btn-option w-full text-left p-5 rounded-xl border-2 border-slate-100 hover:border-carmillon hover:bg-slate-50 font-bold transition-all text-sm shadow-sm text-anthracite";
+                btn.onclick = () => verifier(o, bonneReponseTexte);
                 container.appendChild(btn);
             });
         }
 
         function verifier(choix, bonneReponse) {
             const f = document.getElementById('feedback');
-            f.classList.remove('hidden');
+            if (f.classList.contains('block')) return;
+
             const estJuste = (choix === bonneReponse);
-            
-            historique.push({ q: questions[index].q, choix: choix, juste: bonneReponse, ok: estJuste });
+            historique.push({ q: questionsSelectionnees[index].q, choix: choix, juste: bonneReponse, ok: estJuste });
+
+            f.classList.remove('hidden');
+            f.classList.add('block');
 
             if(estJuste) {
                 score++;
-                f.innerText = "CORRECT";
-                f.className = "mt-6 p-4 rounded text-center font-bold bg-green-100 text-green-700";
+                f.innerText = "✅ CORRECT";
+                f.className = "mt-8 p-4 rounded-xl text-center font-black bg-green-100 text-green-700 block";
             } else {
-                f.innerText = "ERREUR";
-                f.className = "mt-6 p-4 rounded text-center font-bold bg-red-100 text-red-700";
+                f.innerText = "❌ ERREUR";
+                f.className = "mt-8 p-4 rounded-xl text-center font-black bg-red-100 text-red-700 block";
             }
 
             setTimeout(() => {
                 index++;
-                if(index < questions.length) chargerQuestion();
-                else finirQuiz();
-            }, 800);
+                if(index < questionsSelectionnees.length) {
+                    chargerQuestion();
+                } else {
+                    document.getElementById('barre-progression').style.width = "100%";
+                    finirQuiz();
+                }
+            }, 1000);
         }
 
         function finirQuiz() {
             document.getElementById('ecran-quiz').classList.add('hidden');
             document.getElementById('ecran-resultats').classList.remove('hidden');
-            document.getElementById('nom-final').innerText = "Agent: " + nomAgent;
+            document.getElementById('nom-final').innerText = "AGENT CP : " + nomAgent;
             document.getElementById('score-chiffre').innerText = score;
+            
+            const aprem = document.getElementById('appreciation');
+            if(score >= 18) { aprem.innerText = "Maîtrise Parfaite"; aprem.style.color = "#16a34a"; }
+            else if(score >= 14) { aprem.innerText = "Résultat Satisfaisant"; aprem.style.color = "#2563eb"; }
+            else { aprem.innerText = "Formation à consolider"; aprem.style.color = "#84002b"; }
         }
 
         function genererAttestation() {
-            let lignes = historique.map(h => `<tr><td>${h.q}</td><td>${h.ok ? 'OK' : 'X'}</td><td>${h.juste}</td></tr>`).join('');
-            const win = window.open('', '', 'width=800,height=900');
-            win.document.write(`<html><head><style>body{font-family:sans-serif;padding:20px} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ddd;padding:8px}</style></head>
-            <body><h1>Attestation TSEE</h1><p>Agent: ${nomAgent}</p><p>Score: ${score}/10</p>
-            <table><tr><th>Question</th><th>Etat</th><th>Bonne Réponse</th></tr>${lignes}</table>
-            <script>window.print();<\/script></body></html>`);
+            const d = new Date();
+            let lignes = historique.map((h, i) => `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding:12px; font-size:11px;">Q${i+1}</td>
+                    <td style="padding:12px; font-size:11px;">${h.q}</td>
+                    <td style="padding:12px; font-weight:bold; font-size:11px; color:${h.ok?'#16a34a':'#84002b'}">${h.ok?'VALIDE':'ECHEC'}</td>
+                    <td style="padding:12px; font-size:10px; color:#666">${h.ok ? '-' : h.juste}</td>
+                </tr>`).join('');
+
+            const win = window.open('', '', 'width=900,height=1000');
+            win.document.write(`
+                <html><head><title>Attestation TSEE</title>
+                <style>
+                    body{font-family:sans-serif; padding:40px; color:#333;}
+                    .cert-box{border:8px solid #f4f4f4; padding:20px;}
+                    .header{border-bottom:4px solid #84002b; padding-bottom:15px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;}
+                    .logo{background:#84002b; color:white; padding:10px; font-weight:900; border-radius:8px;}
+                    table{width:100%; border-collapse:collapse; margin-top:20px;}
+                    th{background:#30363d; color:white; padding:10px; text-align:left; font-size:11px;}
+                    .stamp{margin-top:30px; border:3px solid #84002b; color:#84002b; display:inline-block; padding:8px 15px; font-weight:bold; transform:rotate(-3deg); text-transform:uppercase;}
+                </style></head>
+                <body>
+                    <div class="cert-box">
+                        <div class="header">
+                            <div class="logo">TSEE</div>
+                            <div style="text-align:right">
+                                <h2 style="margin:0; text-transform:uppercase;">Attestation de Formation</h2>
+                                <small>Sécurité des circulations - Module MAT02CD2A2</small>
+                            </div>
+                        </div>
+                        <p>L'agent CP <strong>${nomAgent}</strong> a complété l'examen de révision.</p>
+                        <p style="font-size:20px;">Score Final : <strong>${score} / ${questionsSelectionnees.length}</strong></p>
+                        <table>
+                            <tr><th>N°</th><th>Question</th><th>Résultat</th><th>Correction</th></tr>
+                            ${lignes}
+                        </table>
+                        <div class="stamp">Validé le ${d.toLocaleDateString()}</div>
+                    </div>
+                    <script>window.onload = function(){ setTimeout(function(){ window.print(); window.close(); }, 700); }<\/script>
+                </body></html>`);
             win.document.close();
         }
     </script>
